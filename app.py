@@ -5,17 +5,16 @@ import sqlite3
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
 
 # ============================================================
-# PAGE CONFIGURATION
+# PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
     page_title="CareerFlow",
-    page_icon="C",
+    page_icon="💼",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -28,259 +27,42 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-    /* ---------- GLOBAL ---------- */
+    /* ---------- GENERAL ---------- */
 
     .stApp {
-        direction: rtl;
-        background-color: #f7f8fc;
+        background-color: #f6f7fb;
     }
 
     .main .block-container {
-        max-width: 1400px;
+        max-width: 1450px;
         padding-top: 2rem;
         padding-bottom: 4rem;
     }
 
-    h1, h2, h3, h4 {
-        font-weight: 700 !important;
-        color: #171923;
+    h1, h2, h3 {
+        color: #111827;
+        font-weight: 700;
     }
-
-    p, label, span, div {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                     Roboto, Helvetica, Arial, sans-serif;
-    }
-
 
     /* ---------- SIDEBAR ---------- */
 
     section[data-testid="stSidebar"] {
         background-color: #111827;
-        border-left: 1px solid #1f2937;
     }
 
     section[data-testid="stSidebar"] * {
         color: #f9fafb;
     }
 
-    section[data-testid="stSidebar"] .stButton button {
-        background-color: transparent;
-        border: 1px solid #374151;
-        color: #f9fafb;
-        border-radius: 8px;
-    }
-
-    section[data-testid="stSidebar"] .stButton button:hover {
+    section[data-testid="stSidebar"] .stTextInput input,
+    section[data-testid="stSidebar"] .stMultiSelect div[data-baseweb="select"] {
         background-color: #1f2937;
-        border-color: #4b5563;
+        border-color: #374151;
     }
 
-    .sidebar-logo {
-        font-size: 24px;
-        font-weight: 800;
-        margin-bottom: 4px;
+    section[data-testid="stSidebar"] hr {
+        border-color: #374151;
     }
-
-    .sidebar-subtitle {
-        color: #9ca3af !important;
-        font-size: 13px;
-        margin-bottom: 30px;
-    }
-
-    .sidebar-user {
-        background-color: #1f2937;
-        padding: 14px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .sidebar-user-label {
-        color: #9ca3af !important;
-        font-size: 12px;
-    }
-
-    .sidebar-user-name {
-        font-size: 15px;
-        font-weight: 600;
-        margin-top: 4px;
-    }
-
-
-    /* ---------- LOGIN ---------- */
-
-    .login-wrapper {
-        max-width: 440px;
-        margin: 8vh auto 0 auto;
-    }
-
-    .login-brand {
-        text-align: center;
-        margin-bottom: 35px;
-    }
-
-    .login-logo {
-        font-size: 38px;
-        font-weight: 800;
-        color: #111827;
-    }
-
-    .login-tagline {
-        color: #6b7280;
-        font-size: 15px;
-        margin-top: 6px;
-    }
-
-    .login-card {
-        background: white;
-        padding: 35px;
-        border-radius: 16px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-    }
-
-
-    /* ---------- HEADER ---------- */
-
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-    }
-
-    .page-title {
-        font-size: 30px;
-        font-weight: 800;
-        color: #111827;
-    }
-
-    .page-subtitle {
-        color: #6b7280;
-        margin-top: 4px;
-        font-size: 14px;
-    }
-
-
-    /* ---------- KPI CARDS ---------- */
-
-    .kpi-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 22px;
-        min-height: 125px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-
-    .kpi-label {
-        color: #6b7280;
-        font-size: 13px;
-        margin-bottom: 10px;
-    }
-
-    .kpi-value {
-        font-size: 30px;
-        font-weight: 800;
-        color: #111827;
-    }
-
-    .kpi-description {
-        font-size: 12px;
-        color: #9ca3af;
-        margin-top: 5px;
-    }
-
-
-    /* ---------- SECTION ---------- */
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 35px;
-        margin-bottom: 15px;
-    }
-
-    .section-title {
-        font-size: 19px;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .section-description {
-        color: #6b7280;
-        font-size: 13px;
-    }
-
-
-    /* ---------- STATUS BADGES ---------- */
-
-    .status-badge {
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .status-applied {
-        background-color: #eef2ff;
-        color: #4338ca;
-    }
-
-    .status-phone {
-        background-color: #ecfeff;
-        color: #0e7490;
-    }
-
-    .status-interview {
-        background-color: #eff6ff;
-        color: #1d4ed8;
-    }
-
-    .status-test {
-        background-color: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-offer {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-
-    .status-rejected {
-        background-color: #fee2e2;
-        color: #991b1b;
-    }
-
-
-    /* ---------- JOB CARD ---------- */
-
-    .job-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 10px;
-    }
-
-    .job-company {
-        font-size: 15px;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .job-position {
-        font-size: 13px;
-        color: #6b7280;
-        margin-top: 3px;
-    }
-
-    .job-date {
-        font-size: 12px;
-        color: #9ca3af;
-    }
-
 
     /* ---------- BUTTONS ---------- */
 
@@ -290,46 +72,62 @@ st.markdown("""
         min-height: 40px;
     }
 
-    .stFormSubmitButton > button {
+    /* ---------- INPUTS ---------- */
+
+    .stTextInput input,
+    .stTextArea textarea,
+    .stDateInput input {
         border-radius: 8px;
+    }
+
+    /* ---------- METRICS ---------- */
+
+    div[data-testid="stMetric"] {
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #111827;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    /* ---------- DATA EDITOR ---------- */
+
+    div[data-testid="stDataEditor"] {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        background: white;
+    }
+
+    /* ---------- EXPANDER ---------- */
+
+    div[data-testid="stExpander"] {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background-color: white;
+    }
+
+    /* ---------- TABS ---------- */
+
+    button[data-baseweb="tab"] {
         font-weight: 600;
     }
 
+    /* ---------- ALERTS ---------- */
 
-    /* ---------- INPUTS ---------- */
-
-    input, textarea, select {
-        border-radius: 8px !important;
-    }
-
-
-    /* ---------- DIVIDERS ---------- */
-
-    hr {
-        border-color: #e5e7eb !important;
-    }
-
-
-    /* ---------- EMPTY STATE ---------- */
-
-    .empty-state {
-        background: white;
-        border: 1px dashed #d1d5db;
-        border-radius: 14px;
-        padding: 50px;
-        text-align: center;
-        color: #6b7280;
-    }
-
-    .empty-state-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #374151;
-        margin-bottom: 6px;
-    }
-
-    .empty-state-text {
-        font-size: 13px;
+    div[data-testid="stAlert"] {
+        border-radius: 8px;
     }
 
 </style>
@@ -337,7 +135,7 @@ st.markdown("""
 
 
 # ============================================================
-# DATABASE
+# DATABASE CONFIGURATION
 # ============================================================
 
 DB_FILE = "tracker.db"
@@ -352,8 +150,15 @@ STATUS_OPTIONS = [
 ]
 
 
+# ============================================================
+# DATABASE LAYER
+# ============================================================
+
 def get_db_connection():
-    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+    conn = sqlite3.connect(
+        DB_FILE,
+        check_same_thread=False
+    )
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -413,7 +218,11 @@ def hash_password(password: str, salt: bytes = None):
     return hashed.hex(), salt.hex()
 
 
-def verify_password(password: str, stored_hash: str, salt_hex: str):
+def verify_password(
+    password: str,
+    stored_hash: str,
+    salt_hex: str
+):
 
     salt = bytes.fromhex(salt_hex)
 
@@ -427,7 +236,10 @@ def verify_password(password: str, stored_hash: str, salt_hex: str):
     return hashed_input == stored_hash
 
 
-def register_user(username: str, password: str):
+def register_user(
+    username: str,
+    password: str
+):
 
     username = username.strip().lower()
 
@@ -446,7 +258,11 @@ def register_user(username: str, password: str):
                 (username, password_hash, salt)
                 VALUES (?, ?, ?)
                 """,
-                (username, password_hash, salt)
+                (
+                    username,
+                    password_hash,
+                    salt
+                )
             )
 
             conn.commit()
@@ -462,7 +278,10 @@ def register_user(username: str, password: str):
         return False, "אירעה שגיאה ביצירת החשבון."
 
 
-def authenticate_user(username: str, password: str):
+def authenticate_user(
+    username: str,
+    password: str
+):
 
     username = username.strip().lower()
 
@@ -489,7 +308,7 @@ def authenticate_user(username: str, password: str):
 
 
 # ============================================================
-# JOB FUNCTIONS
+# JOB MANAGEMENT
 # ============================================================
 
 def get_user_jobs(username: str):
@@ -572,12 +391,16 @@ def insert_job(
         conn.commit()
 
 
-def update_jobs_batch(username, edited_df):
+def update_jobs_batch(
+    username,
+    edited_df
+):
 
     with get_db_connection() as conn:
 
         cursor = conn.cursor()
 
+        # Delete selected rows
         delete_ids = edited_df[
             edited_df["למחיקה?"] == True
         ]["מזהה"].tolist()
@@ -597,6 +420,7 @@ def update_jobs_batch(username, edited_df):
                 (*delete_ids, username)
             )
 
+        # Update remaining rows
         active_rows = edited_df[
             edited_df["למחיקה?"] == False
         ]
@@ -606,14 +430,12 @@ def update_jobs_batch(username, edited_df):
             cursor.execute(
                 """
                 UPDATE jobs
-
                 SET
                     company = ?,
                     position = ?,
                     status = ?,
                     link = ?,
                     notes = ?
-
                 WHERE id = ?
                 AND username = ?
                 """,
@@ -643,58 +465,62 @@ if "username" not in st.session_state:
 
 
 # ============================================================
-# LOGIN SCREEN
+# LOGIN / REGISTER SCREEN
 # ============================================================
 
 if not st.session_state.logged_in:
 
-    st.markdown(
-        """
-        <div class="login-wrapper">
+    st.write("")
+    st.write("")
+    st.write("")
 
-            <div class="login-brand">
+    left, center, right = st.columns(
+        [1.1, 1.4, 1.1]
+    )
 
-                <div class="login-logo">
+    with center:
+
+        st.markdown(
+            """
+            <div style="
+                text-align:center;
+                margin-bottom:25px;
+            ">
+                <div style="
+                    font-size:36px;
+                    font-weight:800;
+                    color:#111827;
+                ">
                     CareerFlow
                 </div>
 
-                <div class="login-tagline">
-                    ניהול חכם ופשוט של תהליך חיפוש העבודה
+                <div style="
+                    color:#6b7280;
+                    font-size:14px;
+                    margin-top:6px;
+                ">
+                    ניהול חכם של תהליך חיפוש העבודה
                 </div>
-
             </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    col_left, col_center, col_right = st.columns(
-        [1, 2, 1]
-    )
-
-    with col_center:
-
-        st.markdown(
-            '<div class="login-card">',
+            """,
             unsafe_allow_html=True
         )
 
         tab_login, tab_register = st.tabs(
-            ["התחברות", "יצירת חשבון"]
+            [
+                "התחברות",
+                "יצירת חשבון"
+            ]
         )
 
         # ---------------- LOGIN ----------------
 
         with tab_login:
 
-            st.markdown(
-                "### ברוכה הבאה",
-                unsafe_allow_html=True
-            )
+            st.subheader("ברוכה הבאה")
 
             st.caption(
-                "התחברי כדי להמשיך לניהול המועמדויות שלך."
+                "התחברי כדי להמשיך ללוח הבקרה שלך."
             )
 
             with st.form("login_form"):
@@ -736,13 +562,10 @@ if not st.session_state.logged_in:
 
         with tab_register:
 
-            st.markdown(
-                "### יצירת חשבון",
-                unsafe_allow_html=True
-            )
+            st.subheader("יצירת חשבון")
 
             st.caption(
-                "צרי חשבון חדש והתחילי לנהל את חיפוש העבודה שלך."
+                "פתחי חשבון חדש כדי להתחיל לנהל את המועמדויות."
             )
 
             with st.form("register_form"):
@@ -802,11 +625,6 @@ if not st.session_state.logged_in:
 
                             st.error(message)
 
-        st.markdown(
-            "</div>",
-            unsafe_allow_html=True
-        )
-
 
 # ============================================================
 # MAIN APPLICATION
@@ -824,12 +642,20 @@ else:
 
         st.markdown(
             """
-            <div class="sidebar-logo">
+            <div style="
+                font-size:25px;
+                font-weight:800;
+                margin-bottom:3px;
+            ">
                 CareerFlow
             </div>
 
-            <div class="sidebar-subtitle">
-                Career Management Platform
+            <div style="
+                color:#9ca3af;
+                font-size:12px;
+                margin-bottom:28px;
+            ">
+                Career Management
             </div>
             """,
             unsafe_allow_html=True
@@ -837,13 +663,24 @@ else:
 
         st.markdown(
             f"""
-            <div class="sidebar-user">
+            <div style="
+                background:#1f2937;
+                border-radius:9px;
+                padding:12px;
+                margin-bottom:22px;
+            ">
 
-                <div class="sidebar-user-label">
+                <div style="
+                    color:#9ca3af;
+                    font-size:11px;
+                ">
                     משתמש מחובר
                 </div>
 
-                <div class="sidebar-user-name">
+                <div style="
+                    font-weight:600;
+                    margin-top:3px;
+                ">
                     {current_user}
                 </div>
 
@@ -852,7 +689,7 @@ else:
             unsafe_allow_html=True
         )
 
-        st.markdown("### חיפוש וסינון")
+        st.markdown("#### חיפוש וסינון")
 
         search_term = st.text_input(
             "חיפוש",
@@ -912,30 +749,15 @@ else:
     # HEADER
     # ========================================================
 
-    st.markdown(
-        """
-        <div class="page-header">
+    st.title("לוח הבקרה")
 
-            <div>
-
-                <div class="page-title">
-                    לוח הבקרה
-                </div>
-
-                <div class="page-subtitle">
-                    סקירה מרכזית של תהליך חיפוש העבודה שלך
-                </div>
-
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.caption(
+        "סקירה מרכזית של תהליך חיפוש העבודה שלך"
     )
 
 
     # ========================================================
-    # KPI CALCULATIONS
+    # KPI METRICS
     # ========================================================
 
     total_jobs = len(df)
@@ -965,133 +787,50 @@ else:
         ]
     )
 
+    rejected = len(
+        df[
+            df["סטאטוס"] == "דחייה"
+        ]
+    )
 
-    # ========================================================
-    # KPI CARDS
-    # ========================================================
 
     k1, k2, k3, k4 = st.columns(4)
 
     with k1:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-
-                <div class="kpi-label">
-                    סה"כ מועמדויות
-                </div>
-
-                <div class="kpi-value">
-                    {total_jobs}
-                </div>
-
-                <div class="kpi-description">
-                    כלל המשרות שנוספו למערכת
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "סה״כ מועמדויות",
+            total_jobs
         )
 
     with k2:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-
-                <div class="kpi-label">
-                    בתהליכי מיון
-                </div>
-
-                <div class="kpi-value">
-                    {in_progress}
-                </div>
-
-                <div class="kpi-description">
-                    מועמדויות הנמצאות בתהליך
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "בתהליכי מיון",
+            in_progress
         )
 
     with k3:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-
-                <div class="kpi-label">
-                    מועמדויות פעילות
-                </div>
-
-                <div class="kpi-value">
-                    {applications}
-                </div>
-
-                <div class="kpi-description">
-                    ממתינות לשלב הבא
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "ממתינות למענה",
+            applications
         )
 
     with k4:
-
-        st.markdown(
-            f"""
-            <div class="kpi-card">
-
-                <div class="kpi-label">
-                    הצעות עבודה
-                </div>
-
-                <div class="kpi-value">
-                    {offers}
-                </div>
-
-                <div class="kpi-description">
-                    הצעות שהתקבלו
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.metric(
+            "הצעות עבודה",
+            offers
         )
 
 
     # ========================================================
-    # ADD JOB
+    # ADD NEW JOB
     # ========================================================
 
-    st.markdown(
-        """
-        <div class="section-header">
+    st.write("")
 
-            <div>
-
-                <div class="section-title">
-                    הוספת מועמדות חדשה
-                </div>
-
-                <div class="section-description">
-                    שמרי את פרטי המשרה כדי לעקוב אחר התהליך.
-                </div>
-
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.subheader("הוספת מועמדות")
 
     with st.expander(
-        "＋ הוספת משרה",
+        "＋ הוספת משרה חדשה",
         expanded=False
     ):
 
@@ -1100,9 +839,9 @@ else:
             clear_on_submit=True
         ):
 
-            c1, c2 = st.columns(2)
+            col1, col2 = st.columns(2)
 
-            with c1:
+            with col1:
 
                 company = st.text_input(
                     "שם החברה *",
@@ -1115,11 +854,11 @@ else:
                 )
 
                 status = st.selectbox(
-                    "סטאטוס",
+                    "סטאטוס נוכחי",
                     STATUS_OPTIONS
                 )
 
-            with c2:
+            with col2:
 
                 apply_date = st.date_input(
                     "תאריך הגשה",
@@ -1133,7 +872,7 @@ else:
 
                 notes = st.text_input(
                     "הערות",
-                    placeholder="לדוגמה: ראיון ביום ראשון"
+                    placeholder="הערה קצרה..."
                 )
 
             submitted = st.form_submit_button(
@@ -1153,13 +892,15 @@ else:
                 else:
 
                     insert_job(
-                        current_user,
-                        apply_date.strftime("%Y-%m-%d"),
-                        company.strip(),
-                        position.strip(),
-                        status,
-                        link.strip(),
-                        notes.strip()
+                        username=current_user,
+                        apply_date=apply_date.strftime(
+                            "%Y-%m-%d"
+                        ),
+                        company=company.strip(),
+                        position=position.strip(),
+                        status=status,
+                        link=link.strip(),
+                        notes=notes.strip()
                     )
 
                     st.success(
@@ -1170,28 +911,15 @@ else:
 
 
     # ========================================================
-    # APPLICATION TABLE
+    # APPLICATIONS TABLE
     # ========================================================
 
-    st.markdown(
-        """
-        <div class="section-header">
+    st.write("")
 
-            <div>
+    st.subheader("המועמדויות שלי")
 
-                <div class="section-title">
-                    המועמדויות שלי
-                </div>
-
-                <div class="section-description">
-                    ניהול, עדכון ומעקב אחר כל תהליכי הגיוס.
-                </div>
-
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.caption(
+        f"מציג {len(filtered_df)} מתוך {len(df)} מועמדויות"
     )
 
     if not filtered_df.empty:
@@ -1220,22 +948,9 @@ else:
                 "מזהה":
                     None,
 
-                "קישור":
-                    st.column_config.LinkColumn(
-                        "משרה",
-                        display_text="פתיחת משרה"
-                    ),
-
-                "סטאטוס":
-                    st.column_config.SelectboxColumn(
-                        "סטאטוס",
-                        options=STATUS_OPTIONS,
-                        required=True
-                    ),
-
                 "תאריך":
                     st.column_config.TextColumn(
-                        "תאריך",
+                        "תאריך הגשה",
                         disabled=True
                     ),
 
@@ -1249,9 +964,23 @@ else:
                         "תפקיד"
                     ),
 
+                "סטאטוס":
+                    st.column_config.SelectboxColumn(
+                        "סטאטוס",
+                        options=STATUS_OPTIONS,
+                        required=True
+                    ),
+
+                "קישור":
+                    st.column_config.LinkColumn(
+                        "קישור",
+                        display_text="פתיחת משרה"
+                    ),
+
                 "הערות":
                     st.column_config.TextColumn(
-                        "הערות"
+                        "הערות",
+                        width="medium"
                     )
             },
 
@@ -1262,41 +991,43 @@ else:
 
         st.write("")
 
-        if st.button(
-            "שמירת שינויים",
-            type="primary"
-        ):
+        col_save, col_space = st.columns(
+            [1, 5]
+        )
 
-            update_jobs_batch(
-                current_user,
-                edited_df
-            )
+        with col_save:
 
-            st.success(
-                "השינויים נשמרו בהצלחה."
-            )
+            if st.button(
+                "שמירת שינויים",
+                type="primary",
+                use_container_width=True
+            ):
 
-            st.rerun()
+                update_jobs_batch(
+                    current_user,
+                    edited_df
+                )
+
+                st.success(
+                    "השינויים נשמרו בהצלחה."
+                )
+
+                st.rerun()
 
     else:
 
-        st.markdown(
-            """
-            <div class="empty-state">
+        if df.empty:
 
-                <div class="empty-state-title">
-                    עדיין אין מועמדויות
-                </div>
+            st.info(
+                "עדיין לא הוספת מועמדויות. "
+                "הוסיפי את המשרה הראשונה שלך למעלה."
+            )
 
-                <div class="empty-state-text">
-                    הוסיפי את המשרה הראשונה שלך כדי להתחיל לעקוב
-                    אחר תהליך חיפוש העבודה.
-                </div>
+        else:
 
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.info(
+                "לא נמצאו מועמדויות התואמות לסינון שבחרת."
+            )
 
 
     # ========================================================
@@ -1305,34 +1036,22 @@ else:
 
     if not df.empty:
 
-        st.markdown(
-            """
-            <div class="section-header">
+        st.write("")
+        st.write("")
 
-                <div>
+        st.subheader("ניתוח מועמדויות")
 
-                    <div class="section-title">
-                        Analytics
-                    </div>
-
-                    <div class="section-description">
-                        תמונת מצב של התקדמות המועמדויות.
-                    </div>
-
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.caption(
+            "התפלגות המועמדויות לפי שלב בתהליך הגיוס"
         )
 
-        chart_col, summary_col = st.columns(
-            [2, 1]
+        chart_col, stats_col = st.columns(
+            [2.2, 1]
         )
 
 
         # ----------------------------------------------------
-        # BAR CHART
+        # CHART
         # ----------------------------------------------------
 
         with chart_col:
@@ -1361,19 +1080,19 @@ else:
 
             fig.update_layout(
 
+                height=380,
+
                 showlegend=False,
 
-                height=380,
+                plot_bgcolor="white",
+                paper_bgcolor="white",
 
                 margin=dict(
                     l=20,
                     r=20,
                     t=30,
-                    b=20
+                    b=30
                 ),
-
-                plot_bgcolor="white",
-                paper_bgcolor="white",
 
                 xaxis=dict(
                     title="",
@@ -1382,7 +1101,7 @@ else:
 
                 yaxis=dict(
                     title="מספר מועמדויות",
-                    gridcolor="#eef0f4"
+                    gridcolor="#edf0f4"
                 )
             )
 
@@ -1397,58 +1116,49 @@ else:
 
 
         # ----------------------------------------------------
-        # SUMMARY
+        # STATISTICS
         # ----------------------------------------------------
 
-        with summary_col:
+        with stats_col:
 
-            st.markdown(
-                """
-                <div class="job-card">
+            st.markdown("### סיכום")
 
-                    <div class="section-title">
-                        סיכום
-                    </div>
-
-                    <br>
-
-                """,
-                unsafe_allow_html=True
+            interview_count = len(
+                df[
+                    df["סטאטוס"].isin(
+                        [
+                            "ראיון טלפוני",
+                            "ראיון מקצועי"
+                        ]
+                    )
+                ]
             )
 
-            rejection_rate = (
-                len(
-                    df[
-                        df["סטאטוס"] == "דחייה"
-                    ]
-                )
-                / total_jobs
-                * 100
+            interview_rate = (
+                interview_count / total_jobs * 100
                 if total_jobs
                 else 0
             )
 
-            progress_rate = (
-                in_progress
-                / total_jobs
-                * 100
+            rejection_rate = (
+                rejected / total_jobs * 100
                 if total_jobs
                 else 0
             )
 
             st.metric(
-                "שיעור בתהליכי מיון",
-                f"{progress_rate:.0f}%"
+                "הגיעו לראיון",
+                interview_count
+            )
+
+            st.metric(
+                "שיעור הגעה לראיון",
+                f"{interview_rate:.0f}%"
             )
 
             st.metric(
                 "שיעור דחיות",
                 f"{rejection_rate:.0f}%"
-            )
-
-            st.markdown(
-                "</div>",
-                unsafe_allow_html=True
             )
 
 
@@ -1458,48 +1168,31 @@ else:
 
     if not df.empty:
 
-        st.markdown(
-            """
-            <div class="section-header">
+        st.write("")
+        st.write("")
 
-                <div>
+        st.subheader("מועמדויות אחרונות")
 
-                    <div class="section-title">
-                        מועמדויות אחרונות
-                    </div>
+        recent_df = df.head(5).copy()
 
-                    <div class="section-description">
-                        הפעילות האחרונה במערכת.
-                    </div>
+        recent_df = recent_df[
+            [
+                "תאריך",
+                "שם החברה",
+                "תפקיד",
+                "סטאטוס"
+            ]
+        ]
 
-                </div>
+        recent_df.columns = [
+            "תאריך הגשה",
+            "חברה",
+            "תפקיד",
+            "סטאטוס"
+        ]
 
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.dataframe(
+            recent_df,
+            use_container_width=True,
+            hide_index=True
         )
-
-        recent_jobs = df.head(5)
-
-        for _, row in recent_jobs.iterrows():
-
-            st.markdown(
-                f"""
-                <div class="job-card">
-
-                    <div class="job-company">
-                        {row["שם החברה"]}
-                    </div>
-
-                    <div class="job-position">
-                        {row["תפקיד"]}
-                    </div>
-
-                    <div class="job-date">
-                        {row["תאריך"]} · {row["סטאטוס"]}
-                    </div>
-
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
