@@ -6,11 +6,68 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+# ==========================================
+# הגדרות עמוד עיקריות
+# ==========================================
 st.set_page_config(
-    page_title="Job Tracker Pro",
+    page_title="Job Tracker Pro | Enterprise Edition",
     page_icon="💼",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+)
+
+# ==========================================
+# עיצוב מותאם אישית (Custom CSS)
+# ==========================================
+st.markdown(
+    """
+    <style>
+    /* הגדרת כיוון כללי מימין לשמאל */
+    .stApp {
+        direction: rtl;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* עיצוב כרטיסיות המדדים (KPI Cards) */
+    .metric-card {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+    }
+    .metric-title {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* התאמת אלמנטים בסיידבאר */
+    section[data-testid="stSidebar"] {
+        background-color: #f8fafc;
+        border-left: 1px solid #e2e8f0;
+    }
+    
+    /* שיפור מראה הכפתורים */
+    .stButton>button {
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
 )
 
 DB_FILE = "tracker.db"
@@ -20,7 +77,7 @@ STATUS_OPTIONS = [
     "ראיון מקצועי",
     "מבחן בית",
     "הצעה",
-    "דחייה"
+    "דחייה",
 ]
 
 # ==========================================
@@ -145,7 +202,7 @@ def update_jobs_batch(username: str, edited_df: pd.DataFrame):
             placeholders = ",".join("?" for _ in delete_ids)
             cursor.execute(f"DELETE FROM jobs WHERE id IN ({placeholders}) AND username = ?", (*delete_ids, username))
 
-        # 2. עדכון שורות קיימות שלא נמחקו
+        # 2. עדכון שורות קיימות
         active_rows = edited_df[edited_df["למחיקה?"] == False]
         for _, row in active_rows.iterrows():
             cursor.execute("""
@@ -175,19 +232,21 @@ if "username" not in st.session_state:
 # מסך התחברות והרשמה
 # ==========================================
 if not st.session_state.logged_in:
-    st.markdown("<h2 style='text-align: center;'>💼 Job Tracker Pro</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: gray;'>מערכת ארגונית לניהול תהליכי גיוס וקריירה</p>", unsafe_allow_html=True)
-    
-    col_spacer_l, col_main, col_spacer_r = st.columns([1, 2, 1])
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col_l, col_main, col_r = st.columns([1, 2, 1])
     
     with col_main:
-        tab_login, tab_register = st.tabs(["🔐 התחברות", "📝 יצירת חשבון חדש"])
+        st.markdown("<h1 style='text-align: center; color: #1e293b;'>💼 Job Tracker Pro</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #64748b;'>פלטפורמה חכמה לניהול ומעקב תהליכי קריירה וגיוס</p>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        tab_login, tab_register = st.tabs(["🔐 התחברות למערכת", "📝 פתיחת חשבון חדש"])
 
         with tab_login:
             with st.form("login_form"):
                 login_user = st.text_input("שם משתמש").strip().lower()
                 login_pass = st.text_input("סיסמה", type="password")
-                submit_login = st.form_submit_button("התחבר למערכת", use_container_width=True)
+                submit_login = st.form_submit_button("התחבר למערכת", use_container_width=True, type="primary")
 
                 if submit_login:
                     if authenticate_user(login_user, login_pass):
@@ -195,14 +254,14 @@ if not st.session_state.logged_in:
                         st.session_state.username = login_user
                         st.rerun()
                     else:
-                        st.error("שם משתמש או סיסמה אינם תקינים.")
+                        st.error("שם המשתמש או הסיסמה אינם נכונים.")
 
         with tab_register:
             with st.form("register_form"):
                 reg_user = st.text_input("בחר שם משתמש").strip().lower()
                 reg_pass = st.text_input("בחר סיסמה", type="password")
                 reg_pass_confirm = st.text_input("אימות סיסמה", type="password")
-                submit_reg = st.form_submit_button("פתח חשבון", use_container_width=True)
+                submit_reg = st.form_submit_button("צור חשבון", use_container_width=True)
 
                 if submit_reg:
                     if reg_pass != reg_pass_confirm:
@@ -222,8 +281,9 @@ if not st.session_state.logged_in:
 else:
     current_user = st.session_state.username
 
-    # Sidebar: פרטי משתמש והתנתקות
-    st.sidebar.markdown(f"**שלום, {current_user}**")
+    # Sidebar: פרופיל וסיידבר
+    st.sidebar.markdown(f"### 👤 משתמש מחובר")
+    st.sidebar.markdown(f"**`{current_user}`**")
     if st.sidebar.button("🚪 התנתק", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
@@ -235,7 +295,10 @@ else:
     df = get_user_jobs(current_user)
 
     # כותרת ראשית
-    st.title("💼 מערכת מעקב מועמדויות")
+    st.title("💼 לוח בקרה ומעקב מועמדויות")
+    st.markdown("ניהול ריכוזי של כל המועמדויות והתהליכים הילווים")
+
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # חלק 1: KPI Metrics
     total_jobs = len(df)
@@ -243,13 +306,37 @@ else:
     applied = len(df[df["סטאטוס"] == "נשלח קורות חיים"])
     rejected = len(df[df["סטאטוס"] == "דחייה"])
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric('סה"כ מועמדויות', total_jobs)
-    col2.metric("בתהליכי מיון", in_progress)
-    col3.metric('קו"ח שנשלחו', applied)
-    col4.metric("דחיות", rejected)
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(f'''
+            <div class="metric-card">
+                <div class="metric-title">סה"כ מועמדויות</div>
+                <div class="metric-value">{total_jobs}</div>
+            </div>
+        ''', unsafe_allow_html=True)
+    with c2:
+        st.markdown(f'''
+            <div class="metric-card">
+                <div class="metric-title" style="color: #0284c7;">בתהליכי מיון</div>
+                <div class="metric-value" style="color: #0284c7;">{in_progress}</div>
+            </div>
+        ''', unsafe_allow_html=True)
+    with c3:
+        st.markdown(f'''
+            <div class="metric-card">
+                <div class="metric-title" style="color: #eab308;">נשלחו קו"ח</div>
+                <div class="metric-value" style="color: #ca8a04;">{applied}</div>
+            </div>
+        ''', unsafe_allow_html=True)
+    with c4:
+        st.markdown(f'''
+            <div class="metric-card">
+                <div class="metric-title" style="color: #ef4444;">דחיות</div>
+                <div class="metric-value" style="color: #dc2626;">{rejected}</div>
+            </div>
+        ''', unsafe_allow_html=True)
 
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # חלק 2: הוספת משרה חדשה
     with st.expander("➕ הוספת משרה חדשה לרשימה", expanded=False):
@@ -264,7 +351,7 @@ else:
                 link = st.text_input("קישור למשרה / מודעה")
                 notes = st.text_input("הערות ראשוניות")
 
-            submit_job = st.form_submit_button("שמור משרה", use_container_width=True)
+            submit_job = st.form_submit_button("שמור משרה במערכת", use_container_width=True, type="primary")
             if submit_job:
                 if company.strip() and position.strip():
                     insert_job(
@@ -306,7 +393,7 @@ else:
             display_df,
             column_config={
                 "למחיקה?": st.column_config.CheckboxColumn("למחיקה?", default=False, width="small"),
-                "מזהה": None,  # הסתרת ה-ID מהתצוגה, נשמר ברקע
+                "מזהה": None,
                 "קישור": st.column_config.LinkColumn("קישור למשרה", display_text="פתח משרה"),
                 "סטאטוס": st.column_config.SelectboxColumn("סטאטוס", options=STATUS_OPTIONS, required=True),
                 "תאריך": st.column_config.TextColumn("תאריך הגשה", disabled=True),
@@ -317,37 +404,54 @@ else:
             key="jobs_data_editor"
         )
 
-        col_act1, col_act2 = st.columns([1, 4])
+        col_act1, _ = st.columns([1, 4])
         with col_act1:
             if st.button("💾 שמור שינויים", type="primary", use_container_width=True):
                 update_jobs_batch(current_user, edited_df)
-                st.success("השינויים עודכנו במסד הנתונים בהצלחה!")
+                st.success("השינויים עודכנו בהצלחה!")
                 st.rerun()
     else:
-        st.info("לא נמצאו משרות התואמות לחיפוש או שעדיין לא הוזנו משרות.")
+        st.info("לא נמצאו משרות להצגה.")
 
-    # חלק 5: אנליטיקה וגרפים
+    # חלק 5: אנליטיקה וגרפים מתקדמים
     if not df.empty:
         st.divider()
         st.subheader("📈 ניתוח מצב מועמדויות")
         
+        col_g1, col_g2 = st.columns(2)
+
         counts = df["סטאטוס"].value_counts().reset_index()
         counts.columns = ["סטאטוס", "כמות"]
 
-        fig = px.bar(
-            counts,
-            x="סטאטוס",
-            y="כמות",
-            text="כמות",
-            color="סטאטוס",
-            color_discrete_sequence=px.colors.qualitative.Safe,
-        )
-        fig.update_layout(
-            showlegend=False,
-            xaxis_title="",
-            yaxis_title='מספר משרות',
-            margin=dict(l=20, r=20, t=30, b=20),
-            height=350
-        )
-        fig.update_traces(textposition='outside')
-        st.plotly_chart(fig, use_container_width=True)
+        with col_g1:
+            fig_bar = px.bar(
+                counts,
+                y="סטאטוס",
+                x="כמות",
+                text="כמות",
+                orientation="h",
+                title="התפלגות לפי סטאטוס",
+                color_discrete_sequence=["#3b82f6"]
+            )
+            fig_bar.update_layout(
+                xaxis_title="מספר משרות",
+                yaxis_title="",
+                height=320,
+                margin=dict(l=10, r=10, t=40, b=10)
+            )
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+        with col_g2:
+            fig_pie = px.pie(
+                counts,
+                names="סטאטוס",
+                values="כמות",
+                hole=0.4,
+                title="חלוקה באחוזים",
+                color_discrete_sequence=px.colors.qualitative.Set3
+            )
+            fig_pie.update_layout(
+                height=320,
+                margin=dict(l=10, r=10, t=40, b=10)
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
