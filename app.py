@@ -24,9 +24,11 @@ else:
         ]
     )
 
-# ודאות שקיימת עמודת מחיקה במבנה הנתונים
+# ודאות שקיימת עמודת מחיקה במבנה הנתונים ושהיא מסוג Boolean
 if "מחיקה" not in df.columns:
     df.insert(0, "מחיקה", False)
+
+df["מחיקה"] = df["מחיקה"].astype(bool)
 
 st.title("💼 מערכת מעקב משרות מתקדמת - Job Tracker Pro")
 
@@ -45,9 +47,9 @@ in_progress = len(
 applied = len(df[df["סטאטוס"] == "נשלח קורות חיים"])
 rejected = len(df[df["סטאטוס"] == "דחייה"])
 
-col_m1.metric("סה\"כ משרות", total_jobs)
+col_m1.metric('סה"כ משרות', total_jobs)
 col_m2.metric("בתהליך מתקדם", in_progress)
-col_m3.metric("נשלחו קו\"ח", applied)
+col_m3.metric('נשלחו קו"ח', applied)
 col_m4.metric("דחיות", rejected)
 
 st.markdown("---")
@@ -110,6 +112,7 @@ status_filter = st.sidebar.multiselect(
 )
 
 filtered_df = df.copy()
+filtered_df["מחיקה"] = filtered_df["מחיקה"].astype(bool)
 
 if search_term:
     filtered_df = filtered_df[
