@@ -8,7 +8,6 @@ st.set_page_config(page_title="Job Tracker Pro", layout="wide")
 
 FILE_PATH = "jobs.csv"
 
-# הגדרת העמודות הראשיות שיישמרו ב-CSV
 DATA_COLUMNS = [
     "תאריך",
     "שם החברה",
@@ -18,15 +17,23 @@ DATA_COLUMNS = [
     "הערות",
 ]
 
-# טעינת נתונים מקובץ CSV או יצירת DataFrame חדש
+# טעינת נתונים או יצירת DataFrame חדש
 if os.path.exists(FILE_PATH):
-    df = pd.read_csv(FILE_PATH)
-    # לוודא שכל העמודות הנדרשות קיימות
-    for col in DATA_COLUMNS:
-        if col not in df.columns:
-            df[col] = ""
+    try:
+        df = pd.read_csv(FILE_PATH)
+    except Exception:
+        df = pd.DataFrame(columns=DATA_COLUMNS)
 else:
     df = pd.DataFrame(columns=DATA_COLUMNS)
+
+# ניקוי ואימות העמודות
+for col in DATA_COLUMNS:
+    if col not in df.columns:
+        df[col] = ""
+
+# המרת כל השדות לטקסט למניעת שגיאות טיפוס
+for col in DATA_COLUMNS:
+    df[col] = df[col].fillna("").astype(str)
 
 st.title("💼 מערכת מעקב משרות מתקדמת - Job Tracker Pro")
 
@@ -104,29 +111,24 @@ st.markdown("---")
 # --- חלק 3: סיידבאר לסינון וחיפוש ---
 st.sidebar.header("🔍 סינון וחיפוש")
 search_term = st.sidebar.text_input("חיפוש לפי חברה / תפקיד")
-status_filter = st.sidebar.multiselect(
-    "סינון לפי סטאטוס", options=list(df["סטאטוס"].unique()) if not df.empty else []
-)
+status_options = list(df["סטאטוס"].unique()) if not df.empty else []
+status_filter = st.sidebar.multiselect("סינון לפי סטאטוס", options=status_options)
 
 filtered_df = df.copy()
 
 if search_term and not filtered_df.empty:
     filtered_df = filtered_df[
-        filtered_df["שם החברה"].astype(str).str.contains(search_term, case=False, na=False)
-        | filtered_df["תפקיד"].astype(str).str.contains(search_term, case=False, na=False)
+        filtered_df["שם החברה"].str.contains(search_term, case=False, na=False)
+        | filtered_df["תפקיד"].str.contains(search_term, case=False, na=False)
     ]
 
 if status_filter and not filtered_df.empty:
     filtered_df = filtered_df[filtered_df["סטאטוס"].isin(status_filter)]
 
-# --- חלק 4: טבלאות ועריכה בזמן אמת ---
+# --- חלק 4: ניהול ועריכת משרות ---
 st.subheader("📋 ניהול ועריכת משרות")
-st.caption(
-    "ניתן לערוך נתונים ישירות בטבלה, לסמן תיבת 'למחיקה?' בשורות שתרצי להסיר, וללחוץ על 'שמור שינויים'."
-)
 
 if not filtered_df.empty:
-    # יצירת עמודת מחיקה בוליאנית נקייה בזיכרון
     display_df = filtered_df.copy()
     display_df.insert(0, "למחיקה?", False)
 
@@ -151,28 +153,24 @@ if not filtered_df.empty:
         disabled=["תאריך"],
         use_container_width=True,
         num_rows="dynamic",
-        key="data_editor_widget",
+        key="editor_table",
     )
 
     if st.button("💾 שמור שינויים ועדכן"):
-        # סינון שורות שסומנו למחיקה
         keep_rows = edited_df[edited_df["למחיקה?"] == False]
-        
-        # שמירת רק העמודות המקוריות ל-CSV
         save_df = keep_rows[DATA_COLUMNS]
         save_df.to_csv(FILE_PATH, index=False)
-        
         st.success("השינויים נשמרו בהצלחה!")
         st.rerun()
 else:
-    st.info("אין משרות להצגה כרגע. תוכל/י להוסיף משרה חדשה בטופס למעלה.")
+    st.info("אין משרות להצגה. תוכל/י להוסיף משרה חדשה בטופס למעלה.")
 
 st.markdown("---")
 
-# --- חלק 5: ויזואליזציית נתונים ---
-if not df.empty:
+# --- חלק 5: ניתוח ויזואלי ---
+if not df.empty and len(df[df["סטאטוס"] != ""]) > 0:
     st.subheader("📈 ניתוח התפלגות המשרות")
-    status_counts = df["סטאטוס"].value_counts().reset_index()
+    status_counts = df[df["סטאטוס"] != ""]["סטאטוס"].value_counts().reset_index()
     status_counts.columns = ["סטאטוס", "כמות"]
 
     fig = px.bar(
